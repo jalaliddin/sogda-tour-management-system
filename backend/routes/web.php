@@ -12,4 +12,4 @@ Route::get('/logo', function () {
         abort(404);
     }
     return response()->file($path, ['Cache-Control' => 'public, max-age=86400']);
-});
+})->withoutMiddleware(['web', \Illuminate\Session\Middleware\StartSession::class]);
