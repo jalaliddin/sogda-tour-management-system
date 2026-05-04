@@ -11,5 +11,4 @@
 **/storage/framework/views
 backend/vendor
 backend/bootstrap/cache/*.php
-docker
 README.md
