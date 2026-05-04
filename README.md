@@ -88,19 +88,15 @@ Birinchi marta ~3-5 daqiqa ketadi (npm install + composer + migrations).
 
 ### 5. Super admin yaratish
 
-### 5. Super admin yaratish
-
 ```bash
-docker exec -it sogda_app php artisan tinker
-```
+# 1. Foydalanuvchi yarating
+docker exec sogda_app php artisan tinker --execute="\App\Models\User::create(['name'=>'Admin','email'=>'admin@sogdatour.uz','password'=>bcrypt('PAROLINGIZ')]);"
 
-```php
-\App\Models\User::create([
-    'name'     => 'Admin',
-    'email'    => 'admin@sogdatour.uz',
-    'password' => bcrypt('parolingiz'),
-]);
-// keyin rolni biriktiring (ilovangiz rollarига qarab)
+# 2. Rollar va ruxsatlarni seeder orqali yarating
+docker exec sogda_app php artisan db:seed --class=RolesPermissionsSeeder --force
+
+# 3. Super admin rolini biriktiring
+docker exec sogda_app php artisan tinker --execute="\$u=\App\Models\User::where('email','admin@sogdatour.uz')->first();\$u->assignRole('super_admin');echo 'OK';"
 ```
 
 ### 6. VPS Nginx — Reverse Proxy + HTTPS
