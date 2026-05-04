@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('Laravel:', d.get\\('require',{}\\).get\\('laravel/framework','?'\\)\\); print\\('Sanctum:', d.get\\('require',{}\\).get\\('laravel/sanctum','?'\\)\\); print\\('DomPDF:', d.get\\('require',{}\\).get\\('barryvdh/laravel-dompdf','?'\\)\\); print\\('Spatie:', d.get\\('require',{}\\).get\\('spatie/laravel-permission','?'\\)\\)\")",
+      "Bash(mysql -u root -proot -e \"CREATE DATABASE IF NOT EXISTS sogda_tour CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\")",
+      "Bash(composer require *)",
+      "Bash(php artisan *)",
+      "Bash(curl -s -X POST http://127.0.0.1:8000/api/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"admin@sogdatour.uz\",\"password\":\"Admin123!\"}')",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s http://127.0.0.1:8000/api/dashboard -H 'Authorization: Bearer 1|cB0lNScY3kB1sldE6ziZ8v4cBxR8TplTA1pZpIPu556274a4')",
+      "Bash(npm create *)",
+      "Bash(npm --version)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(curl -s http://localhost:5173/login)",
+      "Read(//home/eversoft/.claude/projects/-home-eversoft-Projects-my-sogdatour-uz/memory/**)",
+      "Bash(pkill -f \"artisan serve\")",
+      "Bash(curl -s -I -X OPTIONS http://127.0.0.1:8000/api/auth/login -H 'Origin: http://localhost:5174' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: Content-Type,Authorization')",
+      "Bash(curl -sv -X OPTIONS http://127.0.0.1:8000/api/auth/login -H 'Origin: http://localhost:5174' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: Content-Type,Authorization')",
+      "Bash(curl -s -X POST http://127.0.0.1:8000/api/auth/login -H 'Content-Type: application/json' -H 'Origin: http://localhost:5174' -d '{\"email\":\"admin@sogdatour.uz\",\"password\":\"Admin123!\"}')",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('success:', d.get\\('success'\\)\\); print\\('user:', d['data']['user']['name'] if d.get\\('success'\\) else d.get\\('message'\\)\\)\")",
+      "Bash(curl -s http://127.0.0.1:8000/api/tours/1/pdf)",
+      "Bash(curl -s -H \"Accept: application/json\" http://127.0.0.1:8000/api/tours/1/pdf)",
+      "Bash(python3 -c \"import json,sys; print\\(json.load\\(sys.stdin\\)\\)\")",
+      "Bash(curl -s \"http://127.0.0.1:8000/api/countries\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(f'Countries: {len\\(d[\\\\\"data\\\\\"]\\)} ta'\\)\")",
+      "Bash(curl -s \"http://127.0.0.1:8000/api/destinations/list?all_list=1\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(f'Destinations: {len\\(d[\\\\\"data\\\\\"]\\)} ta'\\)\")",
+      "Bash(grep -v '^$')",
+      "Bash(vendor/bin/pint app/Http/Controllers/Api/TourController.php --format agent)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d['result'], [f['path'] for f in d.get\\('files',[]\\)]\\)\")",
+      "Bash(vendor/bin/pint app/Services/TourPdfService.php app/Http/Controllers/Api/TourController.php --format agent)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d['result']\\)\")"
+    ],
+    "additionalDirectories": [
+      "/tmp"
+    ]
+  }
+}
