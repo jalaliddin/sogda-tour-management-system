@@ -8,14 +8,20 @@ Avtomatlashtirilgan tur boshqaruv tizimi. Laravel 13 (API) + Vue 3 + Vuetify 3 (
 Internet (80/443)
     │
     ▼
- Nginx
+VPS Nginx (reverse proxy)          ← host nginx, certbot bilan HTTPS
+    │  proxy_pass 127.0.0.1:8093
+    ▼
+Docker: sogda_nginx (:8093)        ← konteyner ichki Nginx
     ├── /api/*   → PHP-FPM (Laravel)
     ├── /logo    → PHP-FPM (Laravel)
     └── /*       → Vue SPA (static)
-        │
-        ▼
-     MySQL 8
+                      │
+                      ▼
+               sogda_mysql (MySQL 8)
 ```
+
+VPSda bir nechta Docker ilovalar bo'lganda har biri o'z portida ishlaydi (`8091`, `8092`, `8093` ...).
+Host Nginx esa domenlarga qarab to'g'ri portga yo'naltiradi.
 
 ---
 
@@ -78,6 +84,10 @@ docker compose up -d --build
 
 Birinchi marta ~3-5 daqiqa ketadi (npm install + composer + migrations).
 
+> Docker ilovasi **8093** portida ishlaydi. Tashqaridan to'g'ridan-to'g'ri emas, VPS Nginx orqali kirish kerak (quyidagi 6-qadamga qarang).
+
+### 5. Super admin yaratish
+
 ### 5. Super admin yaratish
 
 ```bash
@@ -93,63 +103,47 @@ docker exec -it sogda_app php artisan tinker
 // keyin rolni biriktiring (ilovangiz rollarига qarab)
 ```
 
-### 6. HTTPS (Let's Encrypt)
+### 6. VPS Nginx — Reverse Proxy + HTTPS
+
+VPSda `nginx` va `certbot` o'rnatilgan bo'lishi kerak:
 
 ```bash
-# Certbot o'rnatish
-sudo apt install certbot -y
-
-# Sertifikat olish (nginx to'xtatilmaydi, standalone rejim)
-docker compose stop nginx
-sudo certbot certonly --standalone -d my.sogdatour.uz
-docker compose start nginx
+sudo apt install nginx certbot python3-certbot-nginx -y
 ```
 
-Keyin `docker/nginx/default.conf` ga HTTPS qo'shing:
+**`/etc/nginx/sites-available/sogdatour`** faylini yarating:
 
 ```nginx
 server {
     listen 80;
     server_name my.sogdatour.uz;
-    return 301 https://$host$request_uri;
-}
 
-server {
-    listen 443 ssl;
-    server_name my.sogdatour.uz;
-
-    ssl_certificate     /etc/letsencrypt/live/my.sogdatour.uz/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/my.sogdatour.uz/privkey.pem;
-
-    # ... qolgan config o'sha
+    location / {
+        proxy_pass         http://127.0.0.1:8093;
+        proxy_http_version 1.1;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_read_timeout 120s;
+        client_max_body_size 50M;
+    }
 }
 ```
 
-`docker-compose.yml` da nginx servisiga volume qo'shing:
-
-```yaml
-  nginx:
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - backend_storage:/var/www/backend/storage:ro
-    ports:
-      - "80:80"
-      - "443:443"
-```
-
-Keyin rebuild:
+Faollashtiring va HTTPS sertifikat oling:
 
 ```bash
-docker compose up -d --build nginx
+sudo ln -s /etc/nginx/sites-available/sogdatour /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+
+# Certbot avtomatik HTTPS qo'shadi
+sudo certbot --nginx -d my.sogdatour.uz
 ```
 
-**Sertifikatni yangilash** (cron orqali):
+Certbot `listen 443 ssl` bloklarini o'zi qo'shadi. Sertifikat 90 kunda yangilanadi (certbot timer avtomatik ishlaydi).
 
-```bash
-sudo crontab -e
-# Qo'shing:
-0 3 * * * certbot renew --quiet && docker exec sogda_nginx nginx -s reload
-```
+**Eslatma:** `docker-compose.yml` da port `8093:80` — tashqaridan faqat VPS Nginx orqali kirish mumkin, 8093 portiga to'g'ridan-to'g'ri kirish kerak emas.
 
 ---
 

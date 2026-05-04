@@ -68,7 +68,7 @@ services:
     container_name: sogda_nginx
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "8093:80"
     depends_on:
       - app
     networks:
