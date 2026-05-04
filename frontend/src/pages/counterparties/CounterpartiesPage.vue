@@ -210,23 +210,24 @@ const totalPages = computed(() => Math.ceil(total.value / perPage.value) || 1)
 
 const typeFilters = [
   { label: 'Все', value: '' },
-  { label: 'Международный тур', value: 'international_tour' },
+  { label: 'Иностр. тур агентство', value: 'foreign_tour' },
   { label: 'Местный тур', value: 'local_tour' },
   { label: 'Отель', value: 'hotel' },
   { label: 'Ресторан', value: 'restaurant' },
   { label: 'Гид', value: 'guide' },
+  { label: 'Фольклор', value: 'folklore' },
   { label: 'Транспорт', value: 'transport' },
 ]
 
 const typeOptions = typeFilters.filter(t => t.value)
 
 const typeColorMap = {
-  international_tour: 'blue', local_tour: 'teal', hotel: 'purple',
-  restaurant: 'orange', guide: 'green', transport: 'indigo',
+  foreign_tour: 'blue', local_tour: 'teal', hotel: 'purple',
+  restaurant: 'orange', guide: 'green', folklore: 'deep-purple', transport: 'indigo',
 }
 const typeLabelMap = {
-  international_tour: 'Международный тур', local_tour: 'Местный тур', hotel: 'Отель',
-  restaurant: 'Ресторан', guide: 'Гид', transport: 'Транспорт',
+  foreign_tour: 'Иностр. тур агентство', local_tour: 'Местный тур', hotel: 'Отель',
+  restaurant: 'Ресторан', guide: 'Гид', folklore: 'Фольклор', transport: 'Транспорт',
 }
 
 function typeColor(t) { return typeColorMap[t] || 'grey' }
