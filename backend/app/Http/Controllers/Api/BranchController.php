@@ -18,7 +18,7 @@ class BranchController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'city' => 'required|in:toshkent,samarkand,bukhara,khiva',
+            'city' => 'required|string|max:100',
         ]);
 
         $branch = Branch::create($request->all());
