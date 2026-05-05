@@ -21,19 +21,27 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/countries', [CountriesController::class, 'index']);
 Route::get('/destinations/list', [DestinationController::class, 'index']); // ?all_list=1
 
-// PDF download — supports ?token= query param for direct browser access
+// PDF downloads — support ?token= query param for direct browser (window.open) access
 Route::get('/tours/{tour}/pdf', function (\Illuminate\Http\Request $request, \App\Models\Tour $tour) {
     $tokenString = $request->query('token') ?? $request->bearerToken();
-    if (!$tokenString) {
-        return response()->json(['success' => false, 'message' => 'Tizimga kiring.'], 401);
-    }
-    $tokenModel = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenString);
-    if (!$tokenModel) {
+    if (!$tokenString || !\Laravel\Sanctum\PersonalAccessToken::findToken($tokenString)) {
         return response()->json(['success' => false, 'message' => 'Token yaroqsiz.'], 401);
     }
+    $lang = in_array($request->query('lang'), ['ru', 'en']) ? $request->query('lang') : 'ru';
     $service = new \App\Services\TourPdfService();
-    $pdf = $service->generateTourDocument($tour->id);
-    return $pdf->download("tour-{$tour->tour_code}.pdf");
+    $pdf = $service->generateTourDocument($tour->id, $lang);
+    return $pdf->download("tour-{$tour->tour_code}-{$lang}.pdf");
+});
+
+Route::get('/offers/{offer}/pdf', function (\Illuminate\Http\Request $request, \App\Models\Offer $offer) {
+    $tokenString = $request->query('token') ?? $request->bearerToken();
+    if (!$tokenString || !\Laravel\Sanctum\PersonalAccessToken::findToken($tokenString)) {
+        return response()->json(['success' => false, 'message' => 'Token yaroqsiz.'], 401);
+    }
+    $lang = in_array($request->query('lang'), ['ru', 'en']) ? $request->query('lang') : 'ru';
+    $service = new \App\Services\OfferPdfService();
+    $pdf = $service->generate($offer->id, $lang);
+    return $pdf->download("offer-{$offer->id}-{$lang}.pdf");
 });
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -70,7 +78,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/offers/{offer}/accept', [OfferController::class, 'accept']);
     Route::put('/offers/{offer}/reject', [OfferController::class, 'reject']);
     Route::post('/offers/{offer}/convert', [OfferController::class, 'convertToTour']);
-    Route::get('/offers/{offer}/pdf', [OfferController::class, 'generatePdf']);
     Route::apiResource('offers', OfferController::class);
 
     Route::prefix('reports')->group(function () {

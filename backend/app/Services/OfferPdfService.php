@@ -193,7 +193,7 @@ tr:nth-child(even) td { background: #F5F8FC; }
 
         // ── Price boxes ─────────────────────────────────────────────────────
         $html .= '<table style="width:100%; margin:14px 0;"><tr>';
-        if ($offer->price_per_person_usd > 0) {
+        if (($offer->price_per_person_usd ?? 0) > 0) {
             $html .= '<td style="width:50%; padding-right:6px;">
   <div class="price-box">
     <div class="label">' . $this->l('price_pp') . '</div>
