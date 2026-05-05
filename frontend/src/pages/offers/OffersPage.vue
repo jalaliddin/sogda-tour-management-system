@@ -55,6 +55,12 @@
           </v-chip>
         </template>
 
+        <template #item.offer_type="{ item }">
+          <v-chip size="x-small" label color="indigo">
+            {{ offerTypeLabelMap[item.offer_type] || item.offer_type }}
+          </v-chip>
+        </template>
+
         <template #item.actions="{ item }">
           <div class="d-flex gap-1">
             <v-tooltip text="Принять">
@@ -93,6 +99,21 @@
                 </v-btn>
               </template>
             </v-tooltip>
+            <v-menu location="bottom end">
+              <template #activator="{ props }">
+                <v-tooltip text="Скачать PDF">
+                  <template #activator="{ props: tip }">
+                    <v-btn v-bind="{ ...props, ...tip }" icon size="x-small" variant="text" color="red-darken-1">
+                      <v-icon size="16">mdi-file-pdf-box</v-icon>
+                    </v-btn>
+                  </template>
+                </v-tooltip>
+              </template>
+              <v-list density="compact" rounded="lg" elevation="4" min-width="150">
+                <v-list-item prepend-icon="mdi-translate" title="Русский" @click="downloadPDF(item, 'ru')" />
+                <v-list-item prepend-icon="mdi-translate" title="English" @click="downloadPDF(item, 'en')" />
+              </v-list>
+            </v-menu>
             <v-tooltip text="Редактировать">
               <template #activator="{ props }">
                 <v-btn v-bind="props" icon size="x-small" variant="text" color="blue" @click="openEditDialog(item)">
@@ -151,7 +172,16 @@
                 />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field v-model="offerForm.offer_type" label="Тип предложения" variant="outlined" density="compact" />
+                <v-select
+                  v-model="offerForm.offer_type"
+                  :items="offerTypeItems"
+                  item-title="label"
+                  item-value="value"
+                  label="Тип предложения *"
+                  variant="outlined"
+                  density="compact"
+                  :rules="[req]"
+                />
               </v-col>
               <v-col cols="12" md="3">
                 <v-text-field v-model="offerForm.start_date" label="Начало" type="date" variant="outlined" density="compact" />
@@ -252,6 +282,17 @@ const statusTabs = [
   { label: 'Отклонённые', value: 'rejected' },
 ]
 
+const offerTypeItems = [
+  { label: 'Входящий (Inbound)', value: 'inbound' },
+  { label: 'Исходящий (Outbound)', value: 'outbound' },
+  { label: 'Пакетный', value: 'package' },
+  { label: 'Индивидуальный', value: 'custom' },
+]
+
+const offerTypeLabelMap = {
+  inbound: 'Inbound', outbound: 'Outbound', package: 'Пакетный', custom: 'Индивидуальный',
+}
+
 const offerStatusItems = [
   { label: 'Новый', value: 'new' },
   { label: 'На рассмотрении', value: 'reviewing' },
@@ -289,7 +330,7 @@ const headers = [
 ]
 
 const defaultForm = () => ({
-  offer_name: '', counterparty_id: null, offer_type: '',
+  offer_name: '', counterparty_id: null, offer_type: 'inbound',
   start_date: '', end_date: '', pax_min: 1, pax_max: 20,
   price_per_person: 0, status: 'new', notes: '',
 })
@@ -403,6 +444,11 @@ async function convertToTour(item) {
   } catch {
     uiStore.showSnackbar('Ошибка конвертации', 'error')
   }
+}
+
+function downloadPDF(offer, lang = 'ru') {
+  const token = localStorage.getItem('auth_token')
+  window.open(`/api/offers/${offer.id}/pdf?token=${token}&lang=${lang}`, '_blank')
 }
 
 onMounted(() => {

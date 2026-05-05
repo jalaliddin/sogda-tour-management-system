@@ -70,6 +70,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/offers/{offer}/accept', [OfferController::class, 'accept']);
     Route::put('/offers/{offer}/reject', [OfferController::class, 'reject']);
     Route::post('/offers/{offer}/convert', [OfferController::class, 'convertToTour']);
+    Route::get('/offers/{offer}/pdf', [OfferController::class, 'generatePdf']);
     Route::apiResource('offers', OfferController::class);
 
     Route::prefix('reports')->group(function () {

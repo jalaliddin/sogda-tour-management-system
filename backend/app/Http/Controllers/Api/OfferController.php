@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Offer;
 use App\Models\Tour;
+use App\Services\OfferPdfService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -73,6 +74,14 @@ class OfferController extends Controller
     {
         $offer->delete();
         return response()->json(['success' => true, 'message' => 'Offer o\'chirildi.']);
+    }
+
+    public function generatePdf(Request $request, Offer $offer)
+    {
+        $lang = in_array($request->query('lang'), ['ru', 'en']) ? $request->query('lang') : 'ru';
+        $service = new OfferPdfService;
+        $pdf = $service->generate($offer->id, $lang);
+        return $pdf->download("offer-{$offer->id}-{$lang}.pdf");
     }
 
     public function accept(Request $request, Offer $offer)
