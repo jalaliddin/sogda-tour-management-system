@@ -83,6 +83,10 @@
           <v-icon start size="18">mdi-passport</v-icon>
           Визы
         </v-tab>
+        <v-tab value="finance" @click="loadFinance">
+          <v-icon start size="18">mdi-cash-multiple</v-icon>
+          Финансы
+        </v-tab>
       </v-tabs>
 
       <v-window v-model="activeTab">
@@ -297,6 +301,146 @@
             </v-data-table>
           </v-card>
         </v-window-item>
+        <!-- Finance Tab -->
+        <v-window-item value="finance">
+          <template v-if="financeLoading">
+            <v-skeleton-loader type="card@2" />
+          </template>
+          <template v-else-if="finance">
+            <!-- Summary Cards -->
+            <v-row class="mb-4">
+              <v-col cols="6" sm="4" md="2" v-for="card in financeCards" :key="card.label">
+                <v-card rounded="xl" elevation="0" class="border text-center pa-3">
+                  <v-icon :color="card.color" size="28" class="mb-1">{{ card.icon }}</v-icon>
+                  <div class="text-caption text-medium-emphasis">{{ card.label }}</div>
+                  <div class="text-body-1 font-weight-bold mt-1" :class="`text-${card.color}`">
+                    ${{ formatMoney(card.value) }}
+                  </div>
+                </v-card>
+              </v-col>
+            </v-row>
+
+            <!-- Breakdown tables -->
+            <v-row>
+              <!-- Hotels -->
+              <v-col cols="12" md="6" v-if="finance.hotels?.length">
+                <v-card rounded="xl" elevation="0" class="border mb-4">
+                  <v-card-title class="pa-4 pb-2 text-body-1 font-weight-bold">
+                    <v-icon color="indigo" class="mr-2" size="18">mdi-hotel</v-icon>
+                    Отели — ${{ formatMoney(finance.summary.hotels_cost) }}
+                  </v-card-title>
+                  <v-data-table
+                    :headers="[
+                      { title: 'Отель', key: 'hotel_name' },
+                      { title: 'Ночей', key: 'nights_count' },
+                      { title: 'Номеров', key: 'room_count' },
+                      { title: 'Цена/ночь', key: 'price_per_night_usd' },
+                      { title: 'Итого', key: 'total_price_usd' },
+                    ]"
+                    :items="finance.hotels"
+                    density="compact"
+                    hide-default-footer
+                  >
+                    <template #item.price_per_night_usd="{ item }">$ {{ formatMoney(item.price_per_night_usd) }}</template>
+                    <template #item.total_price_usd="{ item }">
+                      <strong>$ {{ formatMoney(item.total_price_usd) }}</strong>
+                    </template>
+                  </v-data-table>
+                </v-card>
+              </v-col>
+
+              <!-- Transports -->
+              <v-col cols="12" md="6" v-if="finance.transports?.length">
+                <v-card rounded="xl" elevation="0" class="border mb-4">
+                  <v-card-title class="pa-4 pb-2 text-body-1 font-weight-bold">
+                    <v-icon color="blue" class="mr-2" size="18">mdi-bus</v-icon>
+                    Транспорт — ${{ formatMoney(finance.summary.transport_cost) }}
+                  </v-card-title>
+                  <v-data-table
+                    :headers="[
+                      { title: 'Маршрут', key: 'route' },
+                      { title: 'Дата', key: 'transport_date' },
+                      { title: 'Стоимость', key: 'total_price_usd' },
+                    ]"
+                    :items="finance.transports"
+                    density="compact"
+                    hide-default-footer
+                  >
+                    <template #item.transport_date="{ item }">{{ formatDate(item.transport_date) }}</template>
+                    <template #item.total_price_usd="{ item }">
+                      <strong>$ {{ formatMoney(item.total_price_usd) }}</strong>
+                    </template>
+                  </v-data-table>
+                </v-card>
+              </v-col>
+
+              <!-- Meals -->
+              <v-col cols="12" md="6" v-if="finance.meals?.length">
+                <v-card rounded="xl" elevation="0" class="border mb-4">
+                  <v-card-title class="pa-4 pb-2 text-body-1 font-weight-bold">
+                    <v-icon color="orange" class="mr-2" size="18">mdi-silverware-fork-knife</v-icon>
+                    Питание — ${{ formatMoney(finance.summary.meals_cost) }}
+                  </v-card-title>
+                  <v-data-table
+                    :headers="[
+                      { title: 'Дата', key: 'meal_date' },
+                      { title: 'Тип', key: 'meal_type' },
+                      { title: 'Чел.', key: 'pax_count' },
+                      { title: 'Цена/чел.', key: 'price_per_person_usd' },
+                      { title: 'Итого', key: 'total_price_usd' },
+                    ]"
+                    :items="finance.meals"
+                    density="compact"
+                    hide-default-footer
+                  >
+                    <template #item.meal_date="{ item }">{{ formatDate(item.meal_date) }}</template>
+                    <template #item.meal_type="{ item }">{{ mealTypeLabel(item.meal_type) }}</template>
+                    <template #item.price_per_person_usd="{ item }">$ {{ formatMoney(item.price_per_person_usd) }}</template>
+                    <template #item.total_price_usd="{ item }">
+                      <strong>$ {{ formatMoney(item.total_price_usd) }}</strong>
+                    </template>
+                  </v-data-table>
+                </v-card>
+              </v-col>
+
+              <!-- Tickets -->
+              <v-col cols="12" md="6" v-if="finance.tickets?.length">
+                <v-card rounded="xl" elevation="0" class="border mb-4">
+                  <v-card-title class="pa-4 pb-2 text-body-1 font-weight-bold">
+                    <v-icon color="teal" class="mr-2" size="18">mdi-ticket-outline</v-icon>
+                    Билеты — ${{ formatMoney(finance.summary.tickets_cost) }}
+                  </v-card-title>
+                  <v-data-table
+                    :headers="[
+                      { title: 'Место', key: 'attraction_name' },
+                      { title: 'Дата', key: 'visit_date' },
+                      { title: 'Чел.', key: 'pax_count' },
+                      { title: 'Цена/чел.', key: 'price_per_person_usd' },
+                      { title: 'Итого', key: 'total_price_usd' },
+                    ]"
+                    :items="finance.tickets"
+                    density="compact"
+                    hide-default-footer
+                  >
+                    <template #item.visit_date="{ item }">{{ formatDate(item.visit_date) }}</template>
+                    <template #item.price_per_person_usd="{ item }">$ {{ formatMoney(item.price_per_person_usd) }}</template>
+                    <template #item.total_price_usd="{ item }">
+                      <strong>$ {{ formatMoney(item.total_price_usd) }}</strong>
+                    </template>
+                  </v-data-table>
+                </v-card>
+              </v-col>
+            </v-row>
+
+            <v-alert v-if="!finance.hotels?.length && !finance.transports?.length && !finance.meals?.length && !finance.tickets?.length"
+              type="info" variant="tonal">
+              Финансовые данные ещё не добавлены для этого тура.
+            </v-alert>
+          </template>
+          <template v-else>
+            <v-alert type="info" variant="tonal">Нажмите на вкладку для загрузки финансов.</v-alert>
+          </template>
+        </v-window-item>
       </v-window>
     </template>
 
@@ -307,7 +451,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '@/services/api'
 import { useUiStore } from '@/stores/ui'
@@ -320,6 +464,8 @@ const loading = ref(false)
 const confirming = ref(false)
 const tour = ref(null)
 const activeTab = ref('overview')
+const finance = ref(null)
+const financeLoading = ref(false)
 
 const statusColorMap = {
   draft: 'grey', confirmed: 'blue', in_progress: 'green',
@@ -407,6 +553,37 @@ async function confirmTour() {
     uiStore.showSnackbar('Ошибка подтверждения', 'error')
   } finally {
     confirming.value = false
+  }
+}
+
+function formatMoney(v) {
+  return Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+const financeCards = computed(() => {
+  if (!finance.value) return []
+  const s = finance.value.summary
+  return [
+    { label: 'Отели', value: s.hotels_cost, color: 'indigo', icon: 'mdi-hotel' },
+    { label: 'Транспорт', value: s.transport_cost, color: 'blue', icon: 'mdi-bus' },
+    { label: 'Питание', value: s.meals_cost, color: 'orange', icon: 'mdi-silverware-fork-knife' },
+    { label: 'Билеты', value: s.tickets_cost, color: 'teal', icon: 'mdi-ticket-outline' },
+    { label: 'Себестоимость', value: s.total_cost, color: 'red', icon: 'mdi-cash-minus' },
+    { label: 'Доход', value: s.revenue, color: 'primary', icon: 'mdi-cash' },
+    { label: 'Прибыль', value: s.profit, color: s.profit >= 0 ? 'success' : 'error', icon: 'mdi-trending-up' },
+  ]
+})
+
+async function loadFinance() {
+  if (finance.value || financeLoading.value) return
+  financeLoading.value = true
+  try {
+    const res = await api.get(`/tours/${tourId}/finance`)
+    finance.value = res.data.data || res.data
+  } catch {
+    uiStore.showSnackbar('Ошибка загрузки финансов', 'error')
+  } finally {
+    financeLoading.value = false
   }
 }
 

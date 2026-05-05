@@ -53,6 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'getData']);
 
     Route::get('/tours/calendar', [TourController::class, 'timeline']);
+    Route::get('/tours/{tour}/finance', [TourController::class, 'finance']);
     Route::post('/tours/{tour}/confirm', [TourController::class, 'confirm']);
     Route::post('/tours/{tour}/duplicate', [TourController::class, 'duplicate']);
     Route::apiResource('tours', TourController::class);

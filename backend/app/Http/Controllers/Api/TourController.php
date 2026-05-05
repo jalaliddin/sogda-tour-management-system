@@ -81,6 +81,7 @@ class TourController extends Controller
             $this->syncMeals($tour, $request->meals ?? [], $request->pax_count ?? 1);
             $this->syncTickets($tour, $request->tickets ?? [], $request->pax_count ?? 1);
             $this->syncVisas($tour, $request->visas ?? []);
+            $this->recalcTourTotal($tour);
 
             DB::commit();
 
@@ -161,6 +162,8 @@ class TourController extends Controller
                 $tour->visas()->delete();
                 $this->syncVisas($tour, $request->visas);
             }
+
+            $this->recalcTourTotal($tour);
 
             DB::commit();
 
@@ -328,14 +331,19 @@ class TourController extends Controller
             }
 
             $dest = $savedDestinations[$index] ?? null;
+            $nights = $dest ? ($dest->nights_count ?: 1) : 1;
+            $roomCount = (int) ($hotel['room_count'] ?? 1);
+            $pricePerNight = (float) ($hotel['price_per_night_usd'] ?? 0);
+            $total = $pricePerNight * $roomCount * $nights;
 
             TourHotel::create([
                 'tour_id' => $tour->id,
                 'tour_destination_id' => $dest?->id ?? null,
                 'hotel_id' => $hotel['hotel_id'],
                 'room_type' => $hotel['room_type'] ?? 'Standard',
-                'room_count' => $hotel['room_count'] ?? 1,
-                'price_per_night_usd' => $hotel['price_per_night_usd'] ?? 0,
+                'room_count' => $roomCount,
+                'price_per_night_usd' => $pricePerNight,
+                'total_price_usd' => $total,
                 'check_in_date' => $dest?->arrival_date ?? null,
                 'check_out_date' => $dest?->departure_date ?? null,
                 'status' => 'pending',
@@ -364,6 +372,8 @@ class TourController extends Controller
     private function syncMeals(Tour $tour, array $mealsData, int $paxCount): void
     {
         foreach ($mealsData as $meal) {
+            $pricePerPerson = (float) ($meal['price_per_person_usd'] ?? 0);
+            $pax = (int) ($meal['pax_count'] ?? $paxCount);
             Meal::create([
                 'tour_id' => $tour->id,
                 'meal_type' => $meal['meal_type'] ?? 'lunch',
@@ -371,8 +381,9 @@ class TourController extends Controller
                 'meal_time' => $meal['meal_time'] ?? null,
                 'restaurant_id' => $meal['restaurant_id'] ?? null,
                 'menu_type' => $meal['menu_type'] ?? 'standard',
-                'price_per_person_usd' => $meal['price_per_person_usd'] ?? 0,
-                'pax_count' => $paxCount,
+                'price_per_person_usd' => $pricePerPerson,
+                'total_price_usd' => $pricePerPerson * $pax,
+                'pax_count' => $pax,
             ]);
         }
     }
@@ -385,14 +396,17 @@ class TourController extends Controller
                 continue;
             }
 
+            $pricePerPerson = (float) ($ticket['price_per_person_usd'] ?? 0);
+            $pax = (int) ($ticket['pax_count'] ?? $paxCount);
             EntranceTicket::create([
                 'tour_id' => $tour->id,
                 'attraction_name' => $ticket['attraction_name'],
                 'city' => $ticket['city'] ?? '',
                 'visit_date' => $ticket['visit_date'] ?? null,
                 'visit_time' => $ticket['visit_time'] ?? null,
-                'pax_count' => $ticket['pax_count'] ?? $paxCount,
-                'price_per_person_usd' => $ticket['price_per_person_usd'] ?? 0,
+                'pax_count' => $pax,
+                'price_per_person_usd' => $pricePerPerson,
+                'total_price_usd' => $pricePerPerson * $pax,
             ]);
         }
     }
@@ -415,6 +429,74 @@ class TourController extends Controller
                 'status' => 'pending',
             ]);
         }
+    }
+
+    private function recalcTourTotal(Tour $tour): void
+    {
+        $tour->refresh();
+
+        $hotelCost = $tour->hotels()->sum('total_price_usd');
+        $transportCost = $tour->transports()->sum('price_usd');
+        $mealCost = $tour->meals()->sum('total_price_usd');
+        $ticketCost = $tour->entranceTickets()->sum('total_price_usd');
+
+        $total = (float)$hotelCost + (float)$transportCost + (float)$mealCost + (float)$ticketCost;
+
+        $tour->update(['total_price_usd' => $total]);
+    }
+
+    public function finance(Tour $tour)
+    {
+        $hotelsCost    = (float) $tour->hotels()->sum('total_price_usd');
+        $transportCost = (float) $tour->transports()->sum('price_usd');
+        $mealsCost     = (float) $tour->meals()->sum('total_price_usd');
+        $ticketsCost   = (float) $tour->entranceTickets()->sum('total_price_usd');
+        $totalCost     = $hotelsCost + $transportCost + $mealsCost + $ticketsCost;
+        $revenue       = (float) $tour->total_price_usd;
+        $profit        = $revenue - $totalCost;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'summary' => [
+                    'hotels_cost'    => $hotelsCost,
+                    'transport_cost' => $transportCost,
+                    'meals_cost'     => $mealsCost,
+                    'tickets_cost'   => $ticketsCost,
+                    'total_cost'     => $totalCost,
+                    'revenue'        => $revenue,
+                    'profit'         => $profit,
+                    'profit_margin'  => $revenue > 0 ? round($profit / $revenue * 100, 1) : 0,
+                ],
+                'hotels' => $tour->hotels()->with('hotel')->get()->map(fn($h) => [
+                    'hotel_name'         => $h->hotel?->name ?? '—',
+                    'room_type'          => $h->room_type,
+                    'room_count'         => $h->room_count,
+                    'nights_count'       => $h->nights_count,
+                    'price_per_night_usd' => (float)$h->price_per_night_usd,
+                    'total_price_usd'    => (float)$h->total_price_usd,
+                ]),
+                'transports' => $tour->transports()->get()->map(fn($t) => [
+                    'route'          => ($t->route_from ?? '') . ' → ' . ($t->route_to ?? ''),
+                    'transport_date' => $t->transport_date,
+                    'total_price_usd' => (float)$t->price_usd,
+                ]),
+                'meals' => $tour->meals()->get()->map(fn($m) => [
+                    'meal_date'           => $m->meal_date,
+                    'meal_type'           => $m->meal_type,
+                    'pax_count'           => $m->pax_count,
+                    'price_per_person_usd' => (float)$m->price_per_person_usd,
+                    'total_price_usd'     => (float)$m->total_price_usd,
+                ]),
+                'tickets' => $tour->entranceTickets()->get()->map(fn($t) => [
+                    'attraction_name'      => $t->attraction_name,
+                    'visit_date'           => $t->visit_date,
+                    'pax_count'            => $t->pax_count,
+                    'price_per_person_usd' => (float)$t->price_per_person_usd,
+                    'total_price_usd'      => (float)$t->total_price_usd,
+                ]),
+            ],
+        ]);
     }
 
     private function generateTourCode(): string
