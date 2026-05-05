@@ -122,7 +122,20 @@
                 />
               </v-col>
               <v-col cols="12" md="4">
-                <v-text-field v-model="hotelForm.category" label="Категория" variant="outlined" density="compact" />
+                <v-select
+                  v-model="hotelForm.category"
+                  :items="[
+                    { title: 'Стандарт', value: 'standard' },
+                    { title: 'Супериор', value: 'superior' },
+                    { title: 'Делюкс', value: 'deluxe' },
+                    { title: 'Сюит', value: 'suite' },
+                  ]"
+                  item-title="title"
+                  item-value="value"
+                  label="Категория"
+                  variant="outlined"
+                  density="compact"
+                />
               </v-col>
               <v-col cols="12" md="4">
                 <v-switch v-model="hotelForm.is_own" label="Собственный отель" color="teal" density="compact" hide-details />
@@ -212,7 +225,7 @@ const headers = [
 ]
 
 const defaultForm = () => ({
-  name: '', city: '', stars: 3, category: '', is_own: false,
+  name: '', city: '', stars: 3, category: 'standard', is_own: false,
   contact_person: '', phone: '', email: '', address: '', notes: '',
 })
 
