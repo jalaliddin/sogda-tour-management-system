@@ -31,7 +31,8 @@
       "Bash(vendor/bin/pint app/Http/Controllers/Api/TourController.php --format agent)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d['result'], [f['path'] for f in d.get\\('files',[]\\)]\\)\")",
       "Bash(vendor/bin/pint app/Services/TourPdfService.php app/Http/Controllers/Api/TourController.php --format agent)",
-      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d['result']\\)\")"
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d['result']\\)\")",
+      "Bash(xargs cat *)"
     ],
     "additionalDirectories": [
       "/tmp"

@@ -154,9 +154,6 @@
               <v-col cols="12" md="4">
                 <v-text-field v-model.number="tForm.capacity" label="Вместимость (чел.)" type="number" variant="outlined" density="compact" min="1" />
               </v-col>
-              <v-col cols="12" md="4">
-                <v-text-field v-model.number="tForm.year" label="Год" type="number" variant="outlined" density="compact" />
-              </v-col>
               <v-col cols="12" md="6">
                 <v-text-field v-model="tForm.driver_name" label="Имя водителя" variant="outlined" density="compact" />
               </v-col>
@@ -249,24 +246,22 @@ const transportTypes = [
 
 const statusFilters = [
   { label: 'Все', value: '' },
-  { label: 'Активен', value: 'active' },
-  { label: 'Занят', value: 'busy' },
+  { label: 'Свободен', value: 'available' },
+  { label: 'В работе', value: 'in_use' },
   { label: 'Ремонт', value: 'maintenance' },
-  { label: 'Неактивен', value: 'inactive' },
 ]
 
 const statusOptions = [
-  { label: 'Активен', value: 'active' },
-  { label: 'Занят', value: 'busy' },
+  { label: 'Свободен', value: 'available' },
+  { label: 'В работе', value: 'in_use' },
   { label: 'Ремонт', value: 'maintenance' },
-  { label: 'Неактивен', value: 'inactive' },
 ]
 
 const statusColorMap = {
-  active: 'success', busy: 'orange', maintenance: 'blue', inactive: 'grey',
+  available: 'success', in_use: 'orange', maintenance: 'blue',
 }
 const statusLabelMap = {
-  active: 'Активен', busy: 'Занят', maintenance: 'Ремонт', inactive: 'Неактивен',
+  available: 'Свободен', in_use: 'В работе', maintenance: 'Ремонт',
 }
 
 function statusColor(s) { return statusColorMap[s] || 'grey' }
@@ -307,8 +302,8 @@ const headers = [
 
 const defaultForm = () => ({
   type: 'bus', brand: '', model: '', plate_number: '',
-  capacity: 20, year: new Date().getFullYear(),
-  driver_name: '', driver_phone: '', status: 'active',
+  capacity: 20,
+  driver_name: '', driver_phone: '', status: 'available',
   is_own: true, notes: '',
 })
 
