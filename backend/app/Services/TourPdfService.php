@@ -187,19 +187,33 @@ class TourPdfService
 <body>';
 
         // ── Header ────────────────────────────────────────────────────────
-        $html .= '<div class="header">
-  <div>
-    <div class="logo-text">SOGDA TOUR</div>
-    <div class="logo-sub">Travel Management System</div>
-  </div>
-  <div class="title">
-    <h1>'.$this->l('doc_title').'</h1>
-    <div class="code">'.$tour->tour_code.' &nbsp;|&nbsp; '.now()->format('d.m.Y').'</div>
-  </div>
-  <div style="text-align: right; font-size: 9px; color: #666;">
-    sogdatour.uz<br>info@sogdatour.uz
-  </div>
-</div>';
+        $logoPath = public_path('logo.jpeg');
+        $logoHtml = '';
+        if (file_exists($logoPath)) {
+            $logoData = base64_encode(file_get_contents($logoPath));
+            $logoHtml = '<img src="data:image/jpeg;base64,'.$logoData.'" style="width:52px; height:52px; border-radius:8px; object-fit:cover;" />';
+        }
+
+        $html .= '<table style="width:100%; border-bottom:3px solid #1A2744; padding-bottom:12px; margin-bottom:18px;">
+  <tr>
+    <td style="width:40%; vertical-align:middle;">
+      <table><tr>
+        <td style="vertical-align:middle; padding-right:10px;">'.$logoHtml.'</td>
+        <td style="vertical-align:middle;">
+          <div class="logo-text">SOGDA TOUR</div>
+          <div class="logo-sub">Travel Management System</div>
+        </td>
+      </tr></table>
+    </td>
+    <td style="text-align:center; vertical-align:middle;">
+      <div style="font-size:18px; font-weight:bold; color:#1A2744;">'.$this->l('doc_title').'</div>
+      <div style="font-size:11px; color:#666; margin-top:4px;">'.$tour->tour_code.' &nbsp;|&nbsp; '.now()->format('d.m.Y').'</div>
+    </td>
+    <td style="text-align:right; vertical-align:middle; font-size:9px; color:#666;">
+      sogdatour.uz<br>info@sogdatour.uz
+    </td>
+  </tr>
+</table>';
 
         // ── General info ──────────────────────────────────────────────────
         $html .= '<div class="section">
