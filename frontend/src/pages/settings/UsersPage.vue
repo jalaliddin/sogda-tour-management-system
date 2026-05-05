@@ -41,12 +41,12 @@
           <div class="d-flex flex-wrap gap-1">
             <v-chip
               v-for="role in (item.roles || [])"
-              :key="role"
-              :color="roleColor(role)"
+              :key="role.name ?? role"
+              :color="roleColor(role.name ?? role)"
               size="x-small"
               label
             >
-              {{ roleLabel(role) }}
+              {{ roleLabel(role.name ?? role) }}
             </v-chip>
           </div>
         </template>
@@ -248,7 +248,7 @@ function openEditDialog(user) {
     ...defaultForm(),
     ...user,
     password: '',
-    roles: user.roles || [],
+    roles: (user.roles || []).map(r => r.name ?? r),
     branch_id: user.branch?.id || null,
   }
   dialog.value = true
@@ -282,7 +282,10 @@ async function loadRolesAndBranches() {
     ])
     const rawRoles = rolesRes.data.data || rolesRes.data || []
     availableRoles.value = Array.isArray(rawRoles)
-      ? rawRoles.map(r => typeof r === 'string' ? { name: r, label: roleLabelMap[r] || r } : r)
+      ? rawRoles.map(r => {
+          const name = typeof r === 'string' ? r : r.name
+          return { name, label: roleLabelMap[name] || name }
+        })
       : []
     branches.value = branchesRes.data.data || branchesRes.data || []
   } catch { /* silent */ }

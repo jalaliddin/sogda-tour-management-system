@@ -70,7 +70,7 @@
         <template #item.type="{ item }">
           <div class="d-flex align-center gap-2">
             <v-icon :color="typeIconColor(item.type)" size="18">{{ typeIcon(item.type) }}</v-icon>
-            <span>{{ item.type }}</span>
+            <span>{{ typeLabel(item.type) }}</span>
           </div>
         </template>
 
@@ -238,7 +238,14 @@ const deletingItem = ref(null)
 let debounceTimer = null
 const req = v => !!v || 'Поле обязательно'
 
-const transportTypes = ['Автобус', 'Микроавтобус', 'Минивэн', 'Седан', 'SUV', 'Поезд', 'Катер']
+const transportTypes = [
+  { title: 'Автобус', value: 'bus' },
+  { title: 'Микроавтобус', value: 'minibus' },
+  { title: 'Легковой', value: 'car' },
+  { title: 'Поезд', value: 'train' },
+  { title: 'Внутренний рейс', value: 'internal_flight' },
+  { title: 'Трансфер', value: 'transfer' },
+]
 
 const statusFilters = [
   { label: 'Все', value: '' },
@@ -267,21 +274,25 @@ function statusLabel(s) { return statusLabelMap[s] || s }
 
 function typeIcon(t) {
   const icons = {
-    'Автобус': 'mdi-bus', 'Микроавтобус': 'mdi-bus-side',
-    'Минивэн': 'mdi-van-passenger', 'Седан': 'mdi-car',
-    'SUV': 'mdi-car-suv', 'Поезд': 'mdi-train', 'Катер': 'mdi-ferry',
-    avtobus: 'mdi-bus', microavtobus: 'mdi-bus-side',
-    minivan: 'mdi-van-passenger', sedan: 'mdi-car',
-    SUV: 'mdi-car-suv', poyezd: 'mdi-train', kater: 'mdi-ferry',
+    bus: 'mdi-bus', minibus: 'mdi-bus', car: 'mdi-car',
+    train: 'mdi-train', internal_flight: 'mdi-airplane', transfer: 'mdi-car-arrow-right',
   }
   return icons[t] || 'mdi-car'
 }
 
 function typeIconColor(t) {
-  const colors = { 'Автобус': 'blue', 'Микроавтобус': 'indigo', 'Минивэн': 'teal', 'Седан': 'green', 'SUV': 'brown', 'Поезд': 'red', 'Катер': 'cyan',
-    avtobus: 'blue', microavtobus: 'indigo', minivan: 'teal', sedan: 'green', poyezd: 'red', kater: 'cyan' }
+  const colors = {
+    bus: 'blue', minibus: 'indigo', car: 'green',
+    train: 'red', internal_flight: 'teal', transfer: 'orange',
+  }
   return colors[t] || 'grey'
 }
+
+const typeLabelMap = {
+  bus: 'Автобус', minibus: 'Микроавтобус', car: 'Легковой',
+  train: 'Поезд', internal_flight: 'Внутренний рейс', transfer: 'Трансфер',
+}
+function typeLabel(t) { return typeLabelMap[t] || t }
 
 const headers = [
   { title: 'Тип', key: 'type', width: 140 },
@@ -295,7 +306,7 @@ const headers = [
 ]
 
 const defaultForm = () => ({
-  type: 'Автобус', brand: '', model: '', plate_number: '',
+  type: 'bus', brand: '', model: '', plate_number: '',
   capacity: 20, year: new Date().getFullYear(),
   driver_name: '', driver_phone: '', status: 'active',
   is_own: true, notes: '',

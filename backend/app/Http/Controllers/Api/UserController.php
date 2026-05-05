@@ -41,17 +41,18 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:8',
-            'role' => 'nullable|exists:roles,name',
+            'password' => 'required|string|min:6',
+            'roles' => 'nullable|array',
+            'roles.*' => 'exists:roles,name',
         ]);
 
-        $userData = $request->except('role');
+        $userData = $request->except(['roles']);
         $userData['password'] = Hash::make($request->password);
 
         $user = User::create($userData);
 
-        if ($request->role) {
-            $user->syncRoles([$request->role]);
+        if ($request->roles) {
+            $user->syncRoles($request->roles);
         }
 
         return response()->json([
@@ -75,7 +76,7 @@ class UserController extends Controller
             'email' => 'sometimes|email|unique:users,email,' . $user->id,
         ]);
 
-        $data = $request->except(['password', 'role']);
+        $data = $request->except(['password', 'roles']);
 
         if ($request->password) {
             $data['password'] = Hash::make($request->password);
@@ -83,8 +84,8 @@ class UserController extends Controller
 
         $user->update($data);
 
-        if ($request->role) {
-            $user->syncRoles([$request->role]);
+        if ($request->has('roles')) {
+            $user->syncRoles($request->roles ?? []);
         }
 
         return response()->json([

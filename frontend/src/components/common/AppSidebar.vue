@@ -43,20 +43,29 @@
           style="border-color:rgba(255,255,255,0.06);"
         />
 
-        <v-list-item
+        <v-tooltip
           v-else
-          :to="item.to"
-          :prepend-icon="item.icon"
-          rounded="lg"
-          class="mb-1 nav-item"
-          active-class="nav-item-active"
-          :title="!ui.sidebarMini ? (ui.lang === 'ru' ? item.titleRu : item.titleEn) : ''"
-          :value="item.to"
+          :text="ui.lang === 'ru' ? item.titleRu : item.titleEn"
+          location="end"
+          :disabled="!ui.sidebarMini"
         >
-          <template v-if="!ui.sidebarMini && item.badge" #append>
-            <v-chip size="x-small" color="error" density="compact">{{ item.badge }}</v-chip>
+          <template #activator="{ props: tip }">
+            <v-list-item
+              v-bind="tip"
+              :to="item.to"
+              :prepend-icon="item.icon"
+              rounded="lg"
+              class="mb-1 nav-item"
+              active-class="nav-item-active"
+              :title="!ui.sidebarMini ? (ui.lang === 'ru' ? item.titleRu : item.titleEn) : ''"
+              :value="item.to"
+            >
+              <template v-if="!ui.sidebarMini && item.badge" #append>
+                <v-chip size="x-small" color="error" density="compact">{{ item.badge }}</v-chip>
+              </template>
+            </v-list-item>
           </template>
-        </v-list-item>
+        </v-tooltip>
       </template>
     </v-list>
 
@@ -120,7 +129,8 @@ const roleLabelMap = {
 
 const roleLabel = computed(() => {
   const map = roleLabelMap[ui.lang] ?? roleLabelMap.ru
-  const role = auth.user?.roles?.[0]
+  const raw = auth.user?.roles?.[0]
+  const role = raw?.name ?? raw
   return map[role] ?? role ?? (ui.lang === 'ru' ? 'Пользователь' : 'User')
 })
 
