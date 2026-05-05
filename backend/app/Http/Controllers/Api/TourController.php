@@ -306,7 +306,7 @@ class TourController extends Controller
             $saved[] = TourDestination::create([
                 'tour_id' => $tour->id,
                 'city' => $dest['city'] ?? 'other',
-                'custom_city_name' => $dest['custom_city_name'] ?: null,
+                'custom_city_name' => $dest['custom_city_name'] ?? null,
                 'arrival_date' => $arrivalDate,
                 'departure_date' => $departureDate,
                 'day_number' => $index + 1,
@@ -352,8 +352,8 @@ class TourController extends Controller
                 'transport_type' => $tr['transport_type'] ?? 'bus',
                 'route_from' => $tr['route_from'] ?? '',
                 'route_to' => $tr['route_to'] ?? '',
-                'transport_date' => $tr['transport_date'] ?: null,
-                'departure_time' => $tr['departure_time'] ?: null,
+                'transport_date' => $tr['transport_date'] ?? null,
+                'departure_time' => $tr['departure_time'] ?? null,
                 'price_usd' => $tr['price_usd'] ?? 0,
                 'is_own_fleet' => (bool) ($tr['is_own_fleet'] ?? false),
             ]);
@@ -367,9 +367,9 @@ class TourController extends Controller
             Meal::create([
                 'tour_id' => $tour->id,
                 'meal_type' => $meal['meal_type'] ?? 'lunch',
-                'meal_date' => $meal['meal_date'] ?: null,
-                'meal_time' => $meal['meal_time'] ?: null,
-                'restaurant_id' => $meal['restaurant_id'] ?: null,
+                'meal_date' => $meal['meal_date'] ?? null,
+                'meal_time' => $meal['meal_time'] ?? null,
+                'restaurant_id' => $meal['restaurant_id'] ?? null,
                 'menu_type' => $meal['menu_type'] ?? 'standard',
                 'price_per_person_usd' => $meal['price_per_person_usd'] ?? 0,
                 'pax_count' => $paxCount,
@@ -389,8 +389,8 @@ class TourController extends Controller
                 'tour_id' => $tour->id,
                 'attraction_name' => $ticket['attraction_name'],
                 'city' => $ticket['city'] ?? '',
-                'visit_date' => $ticket['visit_date'] ?: null,
-                'visit_time' => $ticket['visit_time'] ?: null,
+                'visit_date' => $ticket['visit_date'] ?? null,
+                'visit_time' => $ticket['visit_time'] ?? null,
                 'pax_count' => $ticket['pax_count'] ?? $paxCount,
                 'price_per_person_usd' => $ticket['price_per_person_usd'] ?? 0,
             ]);
